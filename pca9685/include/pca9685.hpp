@@ -53,6 +53,12 @@ class PCA9685 {
     void Reset();
 
     /**
+     * @brief Set the PWM frequency in sleep mode
+     * @param frequency : PWM frequency
+     */
+    void SetPwmFrequency(uint32_t frequency);
+
+    /**
      * @brief Set the PWM for a specific LED
      * @param led : LED number
      * @param on : On time (between 0 and 4096)

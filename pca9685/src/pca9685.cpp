@@ -32,6 +32,8 @@ PCA9685::PCA9685(i2c_master_dev_handle_t handle,
     this->reset_handle_ = reset_handle;
     SwitchAllOff();
 
+    SetPwmFrequency(frequency);
+
     ESP_LOGD(kTag, "Configuring PCA9685");
     uint8_t buffer[3];
     buffer[0] = 0x00;
@@ -39,12 +41,6 @@ PCA9685::PCA9685(i2c_master_dev_handle_t handle,
     // MODE2
     buffer[2] = ((invert ? 1 : 0) << 4) | ((out_drv_mode & 0x1) << 2);
     ESP_ERROR_CHECK(i2c_master_transmit(this->handle_, buffer, 3, kI2CtimeoutMs));
-
-    uint32_t prescale = roundf(25000000.0f / (4096.0f * frequency)) - 1;
-    ESP_LOGD(kTag, "Setting prescale to %lu", prescale);
-    buffer[0] = 0xFE;
-    buffer[1] = prescale;
-    ESP_ERROR_CHECK(i2c_master_transmit(this->handle_, buffer, 2, kI2CtimeoutMs));
 }
 
 esp_err_t PCA9685::NewI2cHandle(i2c_port_num_t i2c_port,
@@ -83,6 +79,15 @@ void PCA9685::Reset() {
     uint8_t buffer[1];
     buffer[0] = 0x06;
     ESP_ERROR_CHECK(i2c_master_transmit(this->handle_, buffer, 1, kI2CtimeoutMs));
+}
+
+void PCA9685::SetPwmFrequency(uint32_t frequency) {
+    uint8_t buffer[2];
+    uint32_t prescale = roundf(25000000.0f / (4096.0f * frequency)) - 1;
+    ESP_LOGD(kTag, "Setting prescale to %lu", prescale);
+    buffer[0] = 0xFE;
+    buffer[1] = prescale;
+    ESP_ERROR_CHECK(i2c_master_transmit(this->handle_, buffer, 2, kI2CtimeoutMs));
 }
 
 void PCA9685::SetPwm(uint8_t led, uint16_t on, uint16_t off) {
